@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EPDS TS2 — Simulación Álbum Qatar 2022</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0c0e12;
+      --bg2:       #13161c;
+      --bg3:       #1a1e27;
+      --border:    rgba(255,255,255,0.07);
+      --border2:   rgba(255,255,255,0.14);
+      --accent:    #4af4a0;
+      --accent2:   #3dd4ff;
+      --warn:      #f7c948;
+      --danger:    #ff6b6b;
+      --text:      #e8eaf0;
+      --muted:     #7a8099;
+      --font:      'Syne', sans-serif;
+      --mono:      'DM Mono', monospace;
+      --r:         10px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 4rem;
+    }
+
+    /* ── HEADER ── */
+    header {
+      padding: 2.5rem 2rem 2rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .header-left h1 {
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+    }
+    .header-left h1 span { color: var(--accent); }
+    .badge-group { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .badge {
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 99px;
+      border: 1px solid var(--border2);
+      color: var(--muted);
+      background: var(--bg2);
+    }
+    .badge.active { border-color: var(--accent); color: var(--accent); background: rgba(74,244,160,0.07); }
+
+    /* ── MAIN LAYOUT ── */
+    main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+    /* ── CONTROLS PANEL ── */
+    .panel {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .panel-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1.25rem;
+    }
+
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .ctrl label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      font-family: var(--mono);
+    }
+    .ctrl-row { display: flex; align-items: center; gap: 10px; }
+    .ctrl input[type=range] {
+      flex: 1;
+      -webkit-appearance: none;
+      height: 4px;
+      border-radius: 99px;
+      background: var(--bg3);
+      outline: none;
+    }
+    .ctrl input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+    .ctrl input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+    .ctrl-val {
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--accent);
+      min-width: 42px;
+      text-align: right;
+    }
+
+    .run-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0.75rem 1.75rem;
+      background: var(--accent);
+      color: #0c0e12;
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 700;
+      border: none;
+      border-radius: var(--r);
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+      letter-spacing: 0.01em;
+    }
+    .run-btn:hover { opacity: 0.88; }
+    .run-btn:active { transform: scale(0.97); }
+    .run-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .run-btn .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(0,0,0,0.3);
+      border-top-color: #0c0e12;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      display: none;
+    }
+    .run-btn.loading .spinner { display: block; }
+    .run-btn.loading .btn-label { opacity: 0.6; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── METRICS ── */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .metric {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 1rem 1.25rem;
+      transition: border-color 0.3s;
+    }
+    .metric.highlight { border-color: rgba(74,244,160,0.35); }
+    .metric-label {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: var(--mono);
+      margin-bottom: 6px;
+    }
+    .metric-value {
+      font-size: 1.7rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      line-height: 1;
+    }
+    .metric-value.accent { color: var(--accent); }
+    .metric-value.accent2 { color: var(--accent2); }
+    .metric-value.warn { color: var(--warn); }
+    .metric-sub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+      font-family: var(--mono);
+    }
+
+    /* ── CHART ── */
+    .chart-wrap {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 8px; }
+    .chart-title { font-size: 13px; font-weight: 600; }
+    .legend { display: flex; gap: 1rem; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); font-family: var(--mono); }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+    /* ── CODE PANEL ── */
+    .code-panel {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      overflow: hidden;
+    }
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1.25rem;
+      background: var(--bg3);
+      border-bottom: 1px solid var(--border);
+    }
+    .code-tabs { display: flex; gap: 4px; }
+    .code-tab {
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      background: none;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .code-tab.active { background: var(--bg); border-color: var(--border2); color: var(--text); }
+    .code-dots { display: flex; gap: 6px; }
+    .code-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+    .code-body {
+      padding: 1.25rem 1.5rem;
+      overflow-x: auto;
+    }
+    pre {
+      font-family: var(--mono);
+      font-size: 12.5px;
+      line-height: 1.75;
+      color: #c9d1e0;
+      white-space: pre;
+    }
+    .kw  { color: #c792ea; }
+    .fn  { color: #82aaff; }
+    .st  { color: var(--accent); }
+    .cm  { color: #546e7a; font-style: italic; }
+    .nb  { color: var(--accent2); }
+    .num { color: var(--warn); }
+
+    /* ── CONCLUSIONES ── */
+    .conclusions {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: var(--r);
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .conclusions h3 { font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; }
+    .conclusions p { font-size: 13.5px; color: var(--muted); line-height: 1.7; margin-bottom: 0.6rem; }
+    .conclusions p strong { color: var(--text); font-weight: 600; }
+    .conclusions p:last-child { margin-bottom: 0; }
+
+    /* ── PLACEHOLDER STATE ── */
+    .placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 3rem 1rem;
+      color: var(--muted);
+      font-size: 13px;
+      font-family: var(--mono);
+      text-align: center;
+    }
+    .placeholder-icon { font-size: 2rem; opacity: 0.4; }
+
+    /* ── ERROR ── */
+    .error-msg {
+      background: rgba(255,107,107,0.08);
+      border: 1px solid rgba(255,107,107,0.25);
+      border-radius: var(--r);
+      padding: 1rem 1.25rem;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--danger);
+      display: none;
+      margin-top: 1rem;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center;
+      padding: 2rem 1rem 1rem;
+      font-size: 12px;
+      color: var(--muted);
+      font-family: var(--mono);
+      border-top: 1px solid var(--border);
+      margin-top: 2rem;
+    }
+
+    /* ── ANIM ── */
+    .fade-in { animation: fadeIn 0.4s ease both; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+    @media (max-width: 600px) {
+      header { padding: 1.5rem 1rem 1rem; }
+      main { padding: 1.25rem 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>Simulación <span>Álbum Qatar 2022</span></h1>
+    <div class="badge-group">
+      <span class="badge active">EPDS_TS2_1D_G5</span>
+      <span class="badge">Coupon Collector's Problem</span>
+      <span class="badge">Python · FastAPI</span>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- CONTROLS -->
+  <div class="panel">
+    <div class="panel-title">Parámetros de la simulación</div>
+    <div class="controls-grid">
+      <div class="ctrl">
+        <label>figus_total (n)</label>
+        <div class="ctrl-row">
+          <input type="range" id="r-figus" min="100" max="1000" step="10" value="860"
+                 oninput="document.getElementById('v-figus').textContent=this.value" />
+          <span class="ctrl-val" id="v-figus">860</span>
+        </div>
+      </div>
+      <div class="ctrl">
+        <label>figus_paquete</label>
+        <div class="ctrl-row">
+          <input type="range" id="r-paquete" min="1" max="20" step="1" value="5"
+                 oninput="document.getElementById('v-paquete').textContent=this.value" />
+          <span class="ctrl-val" id="v-paquete">5</span>
+        </div>
+      </div>
+      <div class="ctrl">
+        <label>N (repeticiones)</label>
+        <div class="ctrl-row">
+          <input type="range" id="r-n" min="10" max="500" step="10" value="100"
+                 oninput="document.getElementById('v-n').textContent=this.value" />
+          <span class="ctrl-val" id="v-n">100</span>
+        </div>
+      </div>
+      <div class="ctrl">
+        <label>seed (semilla)</label>
+        <div class="ctrl-row">
+          <input type="range" id="r-seed" min="1" max="999" step="1" value="42"
+                 oninput="document.getElementById('v-seed').textContent=this.value" />
+          <span class="ctrl-val" id="v-seed">42</span>
+        </div>
+      </div>
+    </div>
+    <button class="run-btn" id="run-btn" onclick="runSimulation()">
+      <div class="spinner"></div>
+      <span class="btn-label">▶ Ejecutar simulación</span>
+    </button>
+    <div class="error-msg" id="error-msg"></div>
+  </div>
+
+  <!-- METRICS -->
+  <div class="metrics-grid" id="metrics-grid">
+    <div class="metric highlight">
+      <div class="metric-label">promedio simulado</div>
+      <div class="metric-value accent" id="m-promedio">—</div>
+      <div class="metric-sub">paquetes</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">valor teórico E[T]</div>
+      <div class="metric-value accent2" id="m-teorico">—</div>
+      <div class="metric-sub">paquetes</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">error relativo</div>
+      <div class="metric-value warn" id="m-error">—</div>
+      <div class="metric-sub">%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">mediana</div>
+      <div class="metric-value" id="m-mediana">—</div>
+      <div class="metric-sub">paquetes</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">desvío estándar</div>
+      <div class="metric-value" id="m-std">—</div>
+      <div class="metric-sub">paquetes</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">rango [min, max]</div>
+      <div class="metric-value" id="m-rango" style="font-size:1rem; padding-top:4px;">—</div>
+      <div class="metric-sub">paquetes</div>
+    </div>
+  </div>
+
+  <!-- HISTOGRAM CHART -->
+  <div class="chart-wrap">
+    <div class="chart-header">
+      <span class="chart-title">Distribución empírica de paquetes necesarios</span>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#4af4a0"></div>promedio sim.</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#3dd4ff"></div>valor teórico</div>
+      </div>
+    </div>
+    <div id="chart-placeholder" class="placeholder">
+      <div class="placeholder-icon">📊</div>
+      <div>Ejecutá la simulación para ver el histograma</div>
+    </div>
+    <canvas id="hist-chart" style="display:none; max-height:320px;"></canvas>
+  </div>
+
+  <!-- CODE PANEL -->
+  <div class="code-panel">
+    <div class="code-header">
+      <div class="code-dots">
+        <div class="code-dot" style="background:#ff6b6b"></div>
+        <div class="code-dot" style="background:#f7c948"></div>
+        <div class="code-dot" style="background:#4af4a0"></div>
+      </div>
+      <div class="code-tabs">
+        <button class="code-tab active" onclick="showTab('tab-sim', this)">simulacion.py</button>
+        <button class="code-tab" onclick="showTab('tab-funciones', this)">funciones.py</button>
+      </div>
+    </div>
+    <div class="code-body">
+      <div id="tab-sim">
+<pre><span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">import</span> random <span class="kw">as</span> rd
+
+<span class="cm"># Parámetros del problema</span>
+figus_total   = <span class="num">860</span>   <span class="cm"># figuritas únicas del álbum Qatar 2022</span>
+figus_paquete = <span class="num">5</span>     <span class="cm"># figuritas por paquete (sin repetición)</span>
+N             = <span class="num">100</span>   <span class="cm"># repeticiones de la simulación</span>
+
+<span class="cm"># Fijamos semilla para reproducibilidad</span>
+rd.<span class="fn">seed</span>(<span class="num">42</span>)
+
+<span class="cm"># Muestra aleatoria: N repeticiones del experimento</span>
+muestras = [<span class="fn">cuantos_paquetes</span>(figus_total, figus_paquete) <span class="kw">for</span> _ <span class="kw">in</span> <span class="nb">range</span>(N)]
+
+<span class="cm"># Estimación de la esperanza por promedio muestral</span>
+estimacion_promedio = np.<span class="fn">mean</span>(muestras)
+
+<span class="cm"># Estadísticos descriptivos</span>
+estimacion_mediana = np.<span class="fn">median</span>(muestras)
+estimacion_std     = np.<span class="fn">std</span>(muestras)
+estimacion_min     = np.<span class="fn">min</span>(muestras)
+estimacion_max     = np.<span class="fn">max</span>(muestras)</pre>
+      </div>
+      <div id="tab-funciones" style="display:none">
+<pre><span class="kw">def</span> <span class="fn">crear_album</span>(figus_total):
+    <span class="st">"""Crea un álbum vacío: vector de figus_total ceros."""</span>
+    <span class="kw">return</span> [<span class="num">0</span>] * figus_total
+
+
+<span class="kw">def</span> <span class="fn">comprar_paquete</span>(figus_total, figus_paquete):
+    <span class="st">"""Genera un paquete SIN repetición (garantía Panini)."""</span>
+    <span class="kw">return</span> rd.<span class="fn">sample</span>(<span class="nb">range</span>(<span class="num">0</span>, figus_total), figus_paquete)
+
+
+<span class="kw">def</span> <span class="fn">pegar_figus</span>(album, paquete):
+    <span class="st">"""Pega las figuritas del paquete en el álbum."""</span>
+    <span class="kw">for</span> figu <span class="kw">in</span> paquete:
+        album[figu] = <span class="num">1</span>
+    <span class="kw">return</span> album
+
+
+<span class="kw">def</span> <span class="fn">album_incompleto</span>(album):
+    <span class="st">"""True si falta al menos una figurita."""</span>
+    <span class="kw">return</span> <span class="num">0</span> <span class="kw">in</span> album
+
+
+<span class="kw">def</span> <span class="fn">cuantos_paquetes</span>(figus_total, figus_paquete):
+    <span class="st">"""Simula llenado completo. Retorna cantidad de paquetes."""</span>
+    album              = <span class="fn">crear_album</span>(figus_total)
+    paquetes_comprados = <span class="num">0</span>
+    <span class="kw">while</span> <span class="fn">album_incompleto</span>(album):
+        paquete = <span class="fn">comprar_paquete</span>(figus_total, figus_paquete)
+        album   = <span class="fn">pegar_figus</span>(album, paquete)
+        paquetes_comprados += <span class="num">1</span>
+    <span class="kw">return</span> paquetes_comprados</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONCLUSIONES -->
+  <div class="conclusions" id="conclusions" style="display:none">
+    <h3>Conclusiones</h3>
+    <p id="concl-1"></p>
+    <p>La distribución empírica presenta <strong>asimetría positiva</strong> (cola hacia la derecha): la mayoría completa el álbum cerca del valor esperado, pero existe probabilidad no despreciable de necesitar muchos más paquetes. Las últimas figuritas que faltan concentran la mayor dificultad, ya que la probabilidad de obtener una nueva decrece a medida que el álbum se llena.</p>
+    <p>Por la <strong>Ley de los Grandes Números</strong> (Maronna, Cap. 4), el promedio muestral converge al valor teórico a medida que N → ∞.</p>
+  </div>
+
+</main>
+
+<footer>EPDS · Trabajo de Simulación 2 · Grupo EPDS_TS2_1D_G5 · Variables Aleatorias Continuas</footer>
+
+<script>
+  let histChart = null;
+
+  function showTab(id, btn) {
+    document.getElementById('tab-sim').style.display = 'none';
+    document.getElementById('tab-funciones').style.display = 'none';
+    document.getElementById(id).style.display = 'block';
+    document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  function buildHistogram(muestras, promedio, teorico) {
+    const bins = 20;
+    const min = Math.min(...muestras);
+    const max = Math.max(...muestras);
+    const binSize = (max - min) / bins;
+    const counts = new Array(bins).fill(0);
+    const labels = [];
+
+    for (let i = 0; i < bins; i++) {
+      labels.push(Math.round(min + i * binSize));
+    }
+    muestras.forEach(v => {
+      const idx = Math.min(Math.floor((v - min) / binSize), bins - 1);
+      counts[idx]++;
+    });
+
+    const ctx = document.getElementById('hist-chart').getContext('2d');
+    if (histChart) histChart.destroy();
+
+    histChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Frecuencia',
+          data: counts,
+          backgroundColor: 'rgba(74,244,160,0.25)',
+          borderColor: 'rgba(74,244,160,0.7)',
+          borderWidth: 1,
+          borderRadius: 3,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1a1e27',
+            titleColor: '#e8eaf0',
+            bodyColor: '#7a8099',
+            borderColor: 'rgba(255,255,255,0.1)',
+            borderWidth: 1,
+            callbacks: {
+              title: (items) => `≈ ${items[0].label} paquetes`,
+              label: (item) => `Frecuencia: ${item.raw}`
+            }
+          },
+          annotation: {}
+        },
+        scales: {
+          x: {
+            grid: { color: 'rgba(255,255,255,0.04)' },
+            ticks: { color: '#7a8099', font: { family: 'DM Mono', size: 11 }, maxRotation: 0, maxTicksLimit: 8 },
+            title: { display: true, text: 'Paquetes necesarios para completar el álbum', color: '#7a8099', font: { family: 'Syne', size: 12 } }
+          },
+          y: {
+            grid: { color: 'rgba(255,255,255,0.04)' },
+            ticks: { color: '#7a8099', font: { family: 'DM Mono', size: 11 } },
+            title: { display: true, text: 'Frecuencia', color: '#7a8099', font: { family: 'Syne', size: 12 } }
+          }
+        }
+      },
+      plugins: [{
+        id: 'vlines',
+        afterDraw(chart) {
+          const ctx = chart.ctx;
+          const xAxis = chart.scales.x;
+          const yAxis = chart.scales.y;
+          const min = Math.min(...muestras);
+          const max = Math.max(...muestras);
+          const binSize = (max - min) / bins;
+
+          const toX = (val) => {
+            const frac = (val - min) / (max - min);
+            return xAxis.left + frac * (xAxis.right - xAxis.left);
+          };
+
+          [[promedio, '#4af4a0', 'promedio sim.'], [teorico, '#3dd4ff', 'teórico']].forEach(([val, color, lbl]) => {
+            const x = toX(val);
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(x, yAxis.top);
+            ctx.lineTo(x, yAxis.bottom);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 4]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = color;
+            ctx.font = '11px DM Mono';
+            ctx.fillText(lbl, x + 5, yAxis.top + 14);
+            ctx.restore();
+          });
+        }
+      }]
+    });
+  }
+
+  async function runSimulation() {
+    const btn = document.getElementById('run-btn');
+    const errMsg = document.getElementById('error-msg');
+
+    const figus = document.getElementById('r-figus').value;
+    const paquete = document.getElementById('r-paquete').value;
+    const n = document.getElementById('r-n').value;
+    const seed = document.getElementById('r-seed').value;
+
+    btn.classList.add('loading');
+    btn.disabled = true;
+    errMsg.style.display = 'none';
+
+    try {
+      const url = `/api/simular?figus_total=${figus}&figus_paquete=${paquete}&n=${n}&seed=${seed}`;
+      const res = await fetch(url);
+
+      if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
+      const data = await res.json();
+
+      document.getElementById('m-promedio').textContent = data.promedio.toLocaleString('es-AR', {maximumFractionDigits: 1});
+      document.getElementById('m-teorico').textContent  = data.valor_teorico.toLocaleString('es-AR', {maximumFractionDigits: 1});
+      document.getElementById('m-error').textContent    = data.error_relativo.toFixed(1);
+      document.getElementById('m-mediana').textContent  = data.mediana.toLocaleString('es-AR', {maximumFractionDigits: 1});
+      document.getElementById('m-std').textContent      = data.std.toLocaleString('es-AR', {maximumFractionDigits: 1});
+      document.getElementById('m-rango').textContent    = `[${data.minimo}, ${data.maximo}]`;
+
+      document.getElementById('chart-placeholder').style.display = 'none';
+      const canvas = document.getElementById('hist-chart');
+      canvas.style.display = 'block';
+      canvas.classList.add('fade-in');
+      buildHistogram(data.muestras, data.promedio, data.valor_teorico);
+
+      const concl = document.getElementById('conclusions');
+      concl.style.display = 'block';
+      concl.classList.add('fade-in');
+      document.getElementById('concl-1').innerHTML =
+        `Con <strong>N = ${data.n}</strong> replicaciones, el promedio estimado fue de <strong>${data.promedio} paquetes</strong> ` +
+        `vs. el valor teórico de <strong>${data.valor_teorico} paquetes</strong>, con un error relativo de <strong>${data.error_relativo}%</strong>. ` +
+        `Esto valida la simulación contra la resolución analítica del Coupon Collector's Problem.`;
+
+    } catch (err) {
+      errMsg.textContent = '⚠ ' + err.message + ' — ¿Está corriendo el servidor Python (uvicorn)?';
+      errMsg.style.display = 'block';
+    } finally {
+      btn.classList.remove('loading');
+      btn.disabled = false;
+    }
+  }
+</script>
+</body>
+</html>
