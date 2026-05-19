@@ -22,40 +22,6 @@ epds-ts2/
 
 ---
 
-## Deploy en Vercel (paso a paso)
-
-### Opción A — Vercel CLI (recomendada)
-
-```bash
-# 1. Instalar Vercel CLI
-npm install -g vercel
-
-# 2. Desde la raíz del proyecto
-cd epds-ts2
-vercel
-
-# 3. Seguir las instrucciones interactivas:
-#    - Set up and deploy: Y
-#    - Which scope: (tu cuenta)
-#    - Link to existing project: N
-#    - Project name: epds-ts2-simulacion
-#    - Directory: ./
-#    - Override settings: N
-
-# 4. Para producción:
-vercel --prod
-```
-
-### Opción B — Vercel Dashboard (sin CLI)
-
-1. Subir el proyecto a GitHub/GitLab
-2. Ir a https://vercel.com/new
-3. Importar el repositorio
-4. Dejar todos los valores por defecto
-5. Hacer clic en **Deploy**
-
----
-
 ## Desarrollo local
 
 ```bash
@@ -76,12 +42,15 @@ python -m http.server 5500
 ### Alternativa más simple (local sin proxy)
 
 Editar temporalmente en `frontend/index.html` la línea:
+
 ```js
-const url = `/api/simular?...`
+const url = `/api/simular?...`;
 ```
+
 por:
+
 ```js
-const url = `http://localhost:8000/api/simular?...`
+const url = `http://localhost:8000/api/simular?...`;
 ```
 
 ---
@@ -90,15 +59,16 @@ const url = `http://localhost:8000/api/simular?...`
 
 El archivo `api/index.py` contiene exactamente el mismo código del notebook `EPDS_TS2_1D_G5_Simulacion2.ipynb`:
 
-| Función | Descripción |
-|---|---|
-| `crear_album(figus_total)` | Vector de `n` ceros |
-| `comprar_paquete(figus_total, figus_paquete)` | `rd.sample` sin reposición |
-| `pegar_figus(album, paquete)` | Marca con `1` las posiciones |
-| `album_incompleto(album)` | `0 in album` |
+| Función                                        | Descripción                     |
+| ---------------------------------------------- | ------------------------------- |
+| `crear_album(figus_total)`                     | Vector de `n` ceros             |
+| `comprar_paquete(figus_total, figus_paquete)`  | `rd.sample` sin reposición      |
+| `pegar_figus(album, paquete)`                  | Marca con `1` las posiciones    |
+| `album_incompleto(album)`                      | `0 in album`                    |
 | `cuantos_paquetes(figus_total, figus_paquete)` | Orquesta con `while` + contador |
 
 El endpoint `/api/simular` acepta parámetros via query string:
+
 - `n` → repeticiones (default: 100)
 - `figus_total` → figuritas (default: 860)
 - `figus_paquete` → por paquete (default: 5)
